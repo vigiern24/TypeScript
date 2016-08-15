@@ -1417,6 +1417,10 @@ namespace ts {
             if (variableStatementNode) {
                 result = append(result, getJSDocComments(variableStatementNode, checkParentVariableStatement));
             }
+            if (node.kind === SyntaxKind.ModuleDeclaration &&
+                node.parent && node.parent.kind === SyntaxKind.ModuleDeclaration) {
+                result = append(result, getJSDocComments(node.parent, checkParentVariableStatement));
+            }
 
             // Also recognize when the node is the RHS of an assignment expression
             const parent = node.parent;
