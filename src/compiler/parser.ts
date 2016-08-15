@@ -2197,7 +2197,7 @@ namespace ts {
             }
             fillSignature(SyntaxKind.ColonToken, /*yieldContext*/ false, /*awaitContext*/ false, /*requireCompleteParameterList*/ false, node);
             parseTypeMemberSemicolon();
-            return finishNode(node);
+            return addJSDocComment(finishNode(node));
         }
 
         function isIndexSignature(): boolean {
@@ -2287,7 +2287,7 @@ namespace ts {
                 // [Yield] nor [Await]
                 fillSignature(SyntaxKind.ColonToken, /*yieldContext*/ false, /*awaitContext*/ false, /*requireCompleteParameterList*/ false, method);
                 parseTypeMemberSemicolon();
-                return finishNode(method);
+                return addJSDocComment(finishNode(method));
             }
             else {
                 const property = <PropertySignature>createNode(SyntaxKind.PropertySignature, fullStart);
@@ -2304,7 +2304,7 @@ namespace ts {
                 }
 
                 parseTypeMemberSemicolon();
-                return finishNode(property);
+                return addJSDocComment(finishNode(property));
             }
         }
 
@@ -5306,7 +5306,7 @@ namespace ts {
             node.typeParameters = parseTypeParameters();
             node.heritageClauses = parseHeritageClauses(/*isClassHeritageClause*/ false);
             node.members = parseObjectTypeMembers();
-            return finishNode(node);
+            return addJSDocComment(finishNode(node));
         }
 
         function parseTypeAliasDeclaration(fullStart: number, decorators: NodeArray<Decorator>, modifiers: ModifiersArray): TypeAliasDeclaration {
@@ -5330,7 +5330,7 @@ namespace ts {
             const node = <EnumMember>createNode(SyntaxKind.EnumMember, scanner.getStartPos());
             node.name = parsePropertyName();
             node.initializer = allowInAnd(parseNonParameterInitializer);
-            return finishNode(node);
+            return addJSDocComment(finishNode(node));
         }
 
         function parseEnumDeclaration(fullStart: number, decorators: NodeArray<Decorator>, modifiers: ModifiersArray): EnumDeclaration {
@@ -5346,7 +5346,7 @@ namespace ts {
             else {
                 node.members = createMissingList<EnumMember>();
             }
-            return finishNode(node);
+            return addJSDocComment(finishNode(node));
         }
 
         function parseModuleBlock(): ModuleBlock {
@@ -5373,7 +5373,7 @@ namespace ts {
             node.body = parseOptional(SyntaxKind.DotToken)
                 ? parseModuleOrNamespaceDeclaration(getNodePos(), /*decorators*/ undefined, /*modifiers*/ undefined, NodeFlags.Export | namespaceFlag)
                 : parseModuleBlock();
-            return finishNode(node);
+            return addJSDocComment(finishNode(node));
         }
 
         function parseAmbientExternalModuleDeclaration(fullStart: number, decorators: NodeArray<Decorator>, modifiers: ModifiersArray): ModuleDeclaration {
@@ -5462,7 +5462,7 @@ namespace ts {
                     parseExpected(SyntaxKind.EqualsToken);
                     importEqualsDeclaration.moduleReference = parseModuleReference();
                     parseSemicolon();
-                    return finishNode(importEqualsDeclaration);
+                    return addJSDocComment(finishNode(importEqualsDeclaration));
                 }
             }
 
