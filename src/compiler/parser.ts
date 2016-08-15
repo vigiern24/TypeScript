@@ -6140,6 +6140,9 @@ namespace ts {
                     let canParseTag = true;
                     let seenAsterisk = true;
                     let advanceToken = true;
+                    let margin: number | undefined = undefined;
+                    let indent = 0;
+                    let text: string;
 
                     nextJSDocToken();
                     skipSpaces();
@@ -6153,15 +6156,17 @@ namespace ts {
                             case SyntaxKind.AtToken:
                                 if (canParseTag) {
                                     popLastNewline(comments);
-                                    parseTag();
+                                    parseTag(indent);
                                     // This will take us past the end of the line, so it's OK to parse a tag on the next pass through the loop
                                     // NOTE: According to usejsdoc.org, a tag goes to end of line, except the last tag. But real-world comments may break this rule.
                                     seenAsterisk = false;
                                     advanceToken = false;
+                                    margin = undefined;
                                 }
                                 else {
                                     comments.push(scanner.getTokenText());
                                 }
+                                indent++;
                                 break;
 
                             case SyntaxKind.NewLineTrivia:
@@ -6169,39 +6174,54 @@ namespace ts {
                                 comments.push(scanner.getTokenText());
                                 canParseTag = true;
                                 seenAsterisk = false;
+                                indent = 0;
                                 break;
 
                             case SyntaxKind.AsteriskToken:
+                                text = scanner.getTokenText();
                                 if (seenAsterisk) {
                                     // If we've already seen an asterisk, then we can no longer parse a tag on this line
                                     canParseTag = false;
-                                    comments.push(scanner.getTokenText());
+                                    comments.push(text);
+                                    if (!margin) {
+                                        margin = indent;
+                                    }
                                 }
                                 // Ignore the first asterisk on a line
                                 seenAsterisk = true;
+                                indent += text.length;
                                 break;
 
                             case SyntaxKind.Identifier:
                                 // Anything else is doc comment text. We just save it. Because it
                                 // wasn't a tag, we can no longer parse a tag on this line until we hit the next
                                 // line break.
+                                text = scanner.getTokenText();
+                                comments.push(text);
+                                if (!margin) {
+                                    margin = indent;
+                                }
                                 canParseTag = false;
-                                comments.push(scanner.getTokenText());
+                                indent += text.length;
                                 break;
 
 
                             case SyntaxKind.WhitespaceTrivia:
                                 // only collect whitespace if we *know* that we're just looking at comments, not a possible jsdoc tag
-                                if (!canParseTag) {
-                                    comments.push(scanner.getTokenText());
+                                text = scanner.getTokenText();
+                                if (!canParseTag || margin !== undefined && indent + text.length > margin) {
+                                    comments.push(text.slice(margin - indent - 1));
                                 }
+                                indent += text.length;
                                 break;
 
                             case SyntaxKind.EndOfFileToken:
                                 break;
 
                             default:
-                                comments.push(scanner.getTokenText());
+                                text = scanner.getTokenText();
+                                comments.push(text);
+                                indent += text.length;
                                 break;
                         }
                         if (advanceToken) {
@@ -6261,7 +6281,7 @@ namespace ts {
                     }
                 }
 
-                function parseTag() {
+                function parseTag(indent: number) {
                     Debug.assert(token() === SyntaxKind.AtToken);
                     const atToken = createNode(SyntaxKind.AtToken, scanner.getTokenPos());
                     atToken.end = scanner.getTextPos();
@@ -6304,14 +6324,16 @@ namespace ts {
                         // a badly malformed tag should not be added to the list of tags
                         return;
                     }
-                    addTag(tag, parseTagComments());
+                    addTag(tag, parseTagComments(indent + tag.end - tag.pos));
                 }
 
-                function parseTagComments() {
+                function parseTagComments(indent: number) {
                     const comments: string[] = [];
                     let savingComments = true;
                     let seenAsterisk = true;
                     let done = false;
+                    let margin: number | undefined;
+                    let text: string;
                     while (!done && token() !== SyntaxKind.EndOfFileToken) {
                         if (savingComments && seenAsterisk) {
                             switch (token()) {
@@ -6320,25 +6342,38 @@ namespace ts {
                                     // (we'll chomp it off afterward)
                                     savingComments = false;
                                     seenAsterisk = false;
+                                    indent = 0;
                                     comments.push(scanner.getTokenText());
                                     break;
                                 case SyntaxKind.AtToken:
                                     done = true;
                                     break;
-                                case SyntaxKind.AsteriskToken:
                                 default:
-                                    comments.push(scanner.getTokenText());
+                                    text = scanner.getTokenText();
+                                    comments.push(text);
+                                    if (!margin) {
+                                        margin = indent;
+                                    }
+                                    indent += text.length;
                                     break;
                             }
                         }
                         else if (!savingComments && !seenAsterisk) {
+                            text = scanner.getTokenText();
                             switch (token()) {
                                 case SyntaxKind.AsteriskToken:
                                     savingComments = false; // ... I guess?
                                     seenAsterisk = true; // almost ready to start recording
+                                    indent += text.length;
                                     break;
                                 case SyntaxKind.NewLineTrivia: // ignore doubled newlines
+                                    indent = 0;
+                                    break;
                                 case SyntaxKind.WhitespaceTrivia: // ignore leading whitespace
+                                    if (margin !== undefined && indent + text.length > margin) {
+                                        comments.push(text.slice(margin - indent - 1));
+                                    }
+                                    indent += text.length;
                                     break;
                                 case SyntaxKind.AtToken:
                                     // STOP
@@ -6348,18 +6383,28 @@ namespace ts {
                                     // somebody decided to start writing with no whitespace or anything!
                                     savingComments = true;
                                     seenAsterisk = true;
-                                    comments.push(scanner.getTokenText());
+                                    if (!margin) {
+                                        margin = indent;
+                                    }
+                                    comments.push(text);
+                                    indent += text.length;
                                     break;
                             }
                         }
                         else if (seenAsterisk && !savingComments) {
+                            text = scanner.getTokenText();
                             switch (token()) {
                                 case SyntaxKind.NewLineTrivia: // record newlines if they have pretty punctuation (could be wrong)
                                     savingComments = false;
                                     seenAsterisk = false;
-                                    comments.push(scanner.getText());
+                                    comments.push(text);
+                                    indent = 0;
                                     break;
                                 case SyntaxKind.WhitespaceTrivia: // ignore leading whitespace
+                                    if (margin !== undefined && indent + text.length > margin) {
+                                        comments.push(text.slice(margin - indent - 1));
+                                    }
+                                    indent += text.length;
                                     break;
                                 case SyntaxKind.AtToken:
                                     // STOP
@@ -6368,7 +6413,11 @@ namespace ts {
                                 default:
                                     savingComments = true; // start recording again for real
                                     seenAsterisk = true;
-                                    comments.push(scanner.getTokenText());
+                                    comments.push(text);
+                                    if (!margin) {
+                                        margin = indent;
+                                    }
+                                    indent += text.length;
                                     break;
                             }
 
