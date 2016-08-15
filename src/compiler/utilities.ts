@@ -1404,12 +1404,16 @@ namespace ts {
             //   */
             // var x = function(name) { return name.length; }
             const isInitializerOfVariableDeclarationInStatement =
-                node.parent &&
-                node.parent.kind === SyntaxKind.VariableDeclaration &&
-                (<VariableDeclaration>node.parent).initializer === node &&
+                isVariableLike(node.parent) &&
+                (node.parent).initializer === node &&
                 node.parent.parent.parent.kind === SyntaxKind.VariableStatement;
+            const isVariableOfVariableDeclarationStatement = isVariableLike(node) &&
+                node.parent.parent.kind === SyntaxKind.VariableStatement;
 
-            const variableStatementNode = isInitializerOfVariableDeclarationInStatement ? node.parent.parent.parent : undefined;
+            const variableStatementNode =
+                isInitializerOfVariableDeclarationInStatement ? node.parent.parent.parent :
+                isVariableOfVariableDeclarationStatement ? node.parent.parent :
+                undefined;
             if (variableStatementNode) {
                 result = append(result, getJSDocComments(variableStatementNode, checkParentVariableStatement));
             }
