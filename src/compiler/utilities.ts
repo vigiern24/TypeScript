@@ -1461,6 +1461,10 @@ namespace ts {
             }
         }
 
+        if (isVariableLike(node) && node.initializer) {
+            result = append(result, getJSDocComments(node.initializer, /*checkParentVariableStatement*/ false));
+        }
+
         if (node.jsDocComments) {
             if (result) {
                 result = append(result, node.jsDocComments);

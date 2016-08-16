@@ -2892,7 +2892,7 @@ namespace ts {
             node.equalsGreaterThanToken = parseExpectedToken(SyntaxKind.EqualsGreaterThanToken, /*reportAtCurrentPosition*/ false, Diagnostics._0_expected, "=>");
             node.body = parseArrowFunctionExpressionBody(/*isAsync*/ !!asyncModifier);
 
-            return finishNode(node);
+            return addJSDocComment(finishNode(node));
         }
 
         function tryParseParenthesizedArrowFunctionExpression(): Expression {
@@ -2925,7 +2925,7 @@ namespace ts {
                 ? parseArrowFunctionExpressionBody(isAsync)
                 : parseIdentifier();
 
-            return finishNode(arrowFunction);
+            return addJSDocComment(finishNode(arrowFunction));
         }
 
         //  True        -> We definitely expect a parenthesized arrow function here.
