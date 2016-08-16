@@ -1445,13 +1445,11 @@ namespace ts {
                     const name = (param.name as Identifier).text;
                     const func = node.parent as FunctionLikeDeclaration;
                     const comments = getJSDocComments(func, checkParentVariableStatement);
-                    const paramTag = forEach(comments, c =>
-                                             forEach(c.tags,
-                                                     tag => tag.kind === SyntaxKind.JSDocParameterTag && (tag as JSDocParameterTag).parameterName.text === name ?
-                                                         tag as JSDocParameterTag :
-                                                         undefined));
-                    if (paramTag) {
-                        result = append(result, [paramTag]);
+                    const paramTags = concatMap(comments, c =>
+                                                filter(c.tags,
+                                                       tag => tag.kind === SyntaxKind.JSDocParameterTag && (tag as JSDocParameterTag).parameterName.text === name));
+                    if (paramTags) {
+                        result = append(result, paramTags);
                     }
                 }
                 else {

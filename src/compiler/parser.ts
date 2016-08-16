@@ -6141,7 +6141,7 @@ namespace ts {
                     let seenAsterisk = true;
                     let advanceToken = true;
                     let margin: number | undefined = undefined;
-                    let indent = 0;
+                    let indent = start - Math.max(content.lastIndexOf("\n", start), 0) + 4;
                     let text: string;
 
                     nextJSDocToken();
