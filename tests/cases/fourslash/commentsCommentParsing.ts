@@ -310,9 +310,9 @@ verify.quickInfoIs("(parameter) b: number", "");
 
 goTo.marker('21');
 verify.currentSignatureHelpDocCommentIs("This is multiplication function");
-verify.currentParameterHelpArgumentDocCommentIs("");
+verify.currentParameterHelpArgumentDocCommentIs("{");
 goTo.marker('21aq');
-verify.quickInfoIs("(parameter) c: number", "");
+verify.quickInfoIs("(parameter) c: number", "{");
 
 goTo.marker('22');
 verify.currentSignatureHelpDocCommentIs("This is multiplication function");

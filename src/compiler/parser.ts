@@ -6155,7 +6155,7 @@ namespace ts {
                         switch (token()) {
                             case SyntaxKind.AtToken:
                                 if (canParseTag) {
-                                    popLastNewline(comments);
+                                    popTrailingNewlines(comments);
                                     parseTag(indent);
                                     // This will take us past the end of the line, so it's OK to parse a tag on the next pass through the loop
                                     // NOTE: According to usejsdoc.org, a tag goes to end of line, except the last tag. But real-world comments may break this rule.
@@ -6234,23 +6234,16 @@ namespace ts {
                     // TODO:
                     // 1. Get jsdoc comments from params
                     //    a. 'function': () => any, but should really be : Function
-                    // 2. Get jsdoc comments from parents (this should already be in place)
-                    //    (I think this is line-limited just like the new code.)
-                    // 3. Still might want indentation-eating code. (maybe)
-                    //    a. if there is no leading * on the first line, then there is no whitespace-eating
-                    //    b. otherwise, the indentation is the number of spaces after the * on the first line
-                    // 4. child comments might need to cross lines until the next tag appears.
-
                     // 6. get *all* tests to pass
-                    popLastNewline(comments);
+                    popTrailingNewlines(comments);
                     result = createJSDocComment();
 
                 });
 
                 return result;
 
-                function popLastNewline(comments: string[]) {
-                    if (comments.length && comments[comments.length - 1] === "\n") {
+                function popTrailingNewlines(comments: string[]) {
+                    while (comments.length && comments[comments.length - 1] === "\n") {
                         comments.pop();
                     }
                 }
@@ -6288,6 +6281,7 @@ namespace ts {
                     nextJSDocToken();
 
                     const tagName = parseJSDocIdentifierName();
+                    skipWhitespace();
                     if (!tagName) {
                         return;
                     }
@@ -6329,7 +6323,7 @@ namespace ts {
 
                 function parseTagComments(indent: number) {
                     const comments: string[] = [];
-                    let savingComments = true;
+                    let savingComments = false;
                     let seenAsterisk = true;
                     let done = false;
                     let margin: number | undefined;
@@ -6430,7 +6424,7 @@ namespace ts {
                         }
                     }
 
-                    popLastNewline(comments);
+                    popTrailingNewlines(comments);
                     return comments;
                 }
 
@@ -6465,13 +6459,14 @@ namespace ts {
 
                 function parseParamTag(atToken: Node, tagName: Identifier) {
                     let typeExpression = tryParseTypeExpression();
-
                     skipWhitespace();
+
                     let name: Identifier;
                     let isBracketed: boolean;
                     // Looking for something like '[foo]' or 'foo'
                     if (parseOptionalToken(SyntaxKind.OpenBracketToken)) {
                         name = parseJSDocIdentifierName();
+                        skipWhitespace();
                         isBracketed = true;
 
                         // May have an optional default, e.g. '[foo = 42]'
@@ -6541,6 +6536,7 @@ namespace ts {
                     const typeExpression = tryParseTypeExpression();
                     skipWhitespace();
                     const name = parseJSDocIdentifierName();
+                    skipWhitespace();
                     if (!name) {
                         parseErrorAtPosition(scanner.getStartPos(), /*length*/ 0, Diagnostics.Identifier_expected);
                         return undefined;
@@ -6563,6 +6559,7 @@ namespace ts {
                     typedefTag.tagName = tagName;
                     typedefTag.name = parseJSDocIdentifierName();
                     typedefTag.typeExpression = typeExpression;
+                    skipWhitespace();
 
                     if (typeExpression) {
                         if (typeExpression.type.kind === SyntaxKind.JSDocTypeReference) {
@@ -6632,6 +6629,7 @@ namespace ts {
                     nextJSDocToken();
 
                     const tagName = parseJSDocIdentifierName();
+                    skipWhitespace();
                     if (!tagName) {
                         return false;
                     }
@@ -6667,6 +6665,7 @@ namespace ts {
 
                     while (true) {
                         const name = parseJSDocIdentifierName();
+                        skipWhitespace();
                         if (!name) {
                             parseErrorAtPosition(scanner.getStartPos(), 0, Diagnostics.Identifier_expected);
                             return undefined;
@@ -6716,7 +6715,6 @@ namespace ts {
                     finishNode(result, end);
 
                     nextJSDocToken();
-                    skipWhitespace();
                     return result;
                 }
             }
