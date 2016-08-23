@@ -1421,21 +1421,9 @@ namespace ts {
 
             // Pull parameter comments from declaring function as well
             if (node.kind === SyntaxKind.Parameter) {
-                const param = node as ParameterDeclaration;
-                if (param.name.kind === SyntaxKind.Identifier) {
-                    const name = (param.name as Identifier).text;
-                    const func = node.parent as FunctionLikeDeclaration;
-                    const comments = getJSDocComments(func, checkParentVariableStatement);
-                    const paramTags = concatMap(comments, c =>
-                                                filter(c.tags,
-                                                       tag => tag.kind === SyntaxKind.JSDocParameterTag && (tag as JSDocParameterTag).parameterName.text === name));
-                    if (paramTags) {
-                        result = append(result, paramTags);
-                    }
-                }
-                else {
-                    // TODO: it's a destructured parameter, so it should look up an "object type" series of multiple lines
-                    // But multi-line object types aren't supported yet either
+                const paramTags = getJSDocParameterTag(node as ParameterDeclaration, checkParentVariableStatement);
+                if (paramTags) {
+                    result = append(result, paramTags);
                 }
             }
         }
@@ -1454,6 +1442,35 @@ namespace ts {
         }
 
         return result;
+    }
+
+    function getJSDocParameterTag(param: ParameterDeclaration, checkParentVariableStatement: boolean): JSDocTag[] {
+        const func = param.parent as FunctionLikeDeclaration;
+        const comments = getJSDocComments(func, checkParentVariableStatement);
+        if (!param.name) {
+            // this is an anonymous jsdoc param from a `function(type1, type2): type3` specification
+            const i = func.parameters.indexOf(param);
+            const paramTags = findMatchingParameterTags(comments, tag => tag.kind === SyntaxKind.JSDocParameterTag);
+            if (paramTags && 0 <= i && i < paramTags.length) {
+                return [paramTags[i]];
+            }
+        }
+        else if (param.name.kind === SyntaxKind.Identifier) {
+            const name = (param.name as Identifier).text;
+            const paramTags = findMatchingParameterTags(comments, tag => tag.kind === SyntaxKind.JSDocParameterTag && (tag as JSDocParameterTag).parameterName.text === name);
+            if (paramTags) {
+                return paramTags;
+            }
+        }
+        else {
+            // TODO: it's a destructured parameter, so it should look up an "object type" series of multiple lines
+            // But multi-line object types aren't supported yet either
+            return undefined;
+        }
+    }
+
+    function findMatchingParameterTags(comments: JSDocComment[], pred: (tag: JSDocTag) => boolean): JSDocTag[] {
+        return concatMap(comments, c => filter(c.tags, pred));
     }
 
     export function getJSDocTypeTag(node: Node): JSDocTypeTag {
