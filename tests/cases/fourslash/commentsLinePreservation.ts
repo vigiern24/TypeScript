@@ -151,7 +151,7 @@ goTo.marker('7');
 verify.quickInfoIs(undefined, "param information first line\n\nparam information third line");
 
 goTo.marker('k');
-verify.quickInfoIs(undefined, "This is firstLine\nThis is second Line\n\n random information first line\n\n random information third line");
+verify.quickInfoIs(undefined, "This is firstLine\nThis is second Line");
 goTo.marker('8');
 verify.quickInfoIs(undefined, "hello   ");
 

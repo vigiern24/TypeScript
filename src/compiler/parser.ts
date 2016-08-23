@@ -6005,7 +6005,7 @@ namespace ts {
                 // TODO: As we start to use the real type parser more, it will need to understand JSDoc syntax at some point.
                 const result = <JSDocRecordType>createNode(SyntaxKind.JSDocRecordType);
                 result.literal = parseTypeLiteral();
-                nextToken();
+                // nextToken();
                 return finishNode(result);
             }
 
@@ -6170,7 +6170,7 @@ namespace ts {
                         switch (token()) {
                             case SyntaxKind.AtToken:
                                 if (canParseTag) {
-                                    popTrailingNewlines(comments);
+                                    removeTrailingNewlines(comments);
                                     parseTag(indent);
                                     // This will take us past the end of the line, so it's OK to parse a tag on the next pass through the loop
                                     // NOTE: According to usejsdoc.org, a tag goes to end of line, except the last tag. But real-world comments may break this rule.
@@ -6250,15 +6250,22 @@ namespace ts {
                     // 1. Get jsdoc comments from params
                     //    a. 'function': () => any, but should really be : Function
                     // 6. get *all* tests to pass
-                    popTrailingNewlines(comments);
+                    removeLeadingNewlines(comments);
+                    removeTrailingNewlines(comments);
                     result = createJSDocComment();
 
                 });
 
                 return result;
 
-                function popTrailingNewlines(comments: string[]) {
-                    while (comments.length && comments[comments.length - 1] === "\n") {
+                function removeLeadingNewlines(comments: string[]) {
+                    while (comments.length && (comments[0] === "\n" || comments[0] === "\r")) {
+                        comments.shift();
+                    }
+                }
+
+                function removeTrailingNewlines(comments: string[]) {
+                    while (comments.length && (comments[comments.length - 1] === "\n" || comments[comments.length - 1] === "\r")) {
                         comments.pop();
                     }
                 }
@@ -6439,7 +6446,8 @@ namespace ts {
                         }
                     }
 
-                    popTrailingNewlines(comments);
+                    removeLeadingNewlines(comments);
+                    removeTrailingNewlines(comments);
                     return comments;
                 }
 
@@ -6463,13 +6471,14 @@ namespace ts {
                 }
 
                 function tryParseTypeExpression(): JSDocTypeExpression {
-                    // TODO: @ should stop parsing immediately because it's the start of a new tag
-                    if (token() !== SyntaxKind.OpenBraceToken) {
-                        return undefined;
-                    }
+                    return tryParse(() => {
+                        skipWhitespace();
+                        if (token() !== SyntaxKind.OpenBraceToken) {
+                            return undefined;
+                        }
 
-                    const typeExpression = parseJSDocTypeExpression();
-                    return typeExpression;
+                        return parseJSDocTypeExpression();
+                    });
                 }
 
                 function parseParamTag(atToken: Node, tagName: Identifier) {
