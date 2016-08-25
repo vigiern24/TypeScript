@@ -5807,6 +5807,7 @@ namespace ts {
 
             export function parseJSDocTypeExpressionForTests(content: string, start: number, length: number) {
                 initializeState("file.js", content, ScriptTarget.Latest, /*_syntaxCursor:*/ undefined, ScriptKind.JS);
+                sourceFile = createSourceFile('file.js', ScriptTarget.Latest, ScriptKind.JS);
                 scanner.setText(content, start, length);
                 currentToken = scanner.scan();
                 const jsDocTypeExpression = parseJSDocTypeExpression();
