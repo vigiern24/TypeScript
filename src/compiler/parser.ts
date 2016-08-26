@@ -2337,6 +2337,7 @@ namespace ts {
                     token() === SyntaxKind.LessThanToken ||
                     token() === SyntaxKind.QuestionToken ||
                     token() === SyntaxKind.ColonToken ||
+                    token() === SyntaxKind.CommaToken ||
                     canParseSemicolon();
             }
             return false;
