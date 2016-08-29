@@ -2800,14 +2800,28 @@ namespace ts {
         return !!getCallOrNewExpressionWorker(node, SyntaxKind.NewExpression);
     }
 
-    function getCallOrNewExpressionTargetingNode(node: Node): CallExpression | NewExpression | undefined {
+    //kill!
+    function getCallOrNewTargetAncestor(node: Node): CallExpression | NewExpression | undefined {
         return <CallExpression>getCallOrNewExpressionWorker(node, SyntaxKind.CallExpression) || <NewExpression>getCallOrNewExpressionWorker(node, SyntaxKind.NewExpression);
     }
 
-    function tryGetCalledDeclaration(typeChecker: TypeChecker, node: Node): SignatureDeclaration | undefined {
-        const callOrNewExpression = getCallOrNewExpressionTargetingNode(node);
-        if (callOrNewExpression) {
-            const signature = typeChecker.getResolvedSignature(callOrNewExpression);
+
+
+    //name
+    //is this in compiler/utilities?
+    function getCallLikeExpressionTargetAncestor(node: Node): CallLikeExpression | undefined {
+        const target = climbPastPropertyAccess(node);
+        const callLike = target.parent;
+        return isCallLikeExpression(callLike) && getInvokedExpression(callLike) === target && callLike;
+    }
+
+    //export type CallLikeExpression = CallExpression | NewExpression | TaggedTemplateExpression | Decorator;
+    //todo: templates
+    //todo: decorators
+    function tryGetSignatureDeclaration(typeChecker: TypeChecker, node: Node): SignatureDeclaration | undefined {
+        const callLike = getCallLikeExpressionTargetAncestor(node);
+        if (callLike) {
+            const signature = typeChecker.getResolvedSignature(callLike);
             return signature.declaration;
         }
     }
@@ -5232,7 +5246,7 @@ namespace ts {
 
             const typeChecker = program.getTypeChecker();
 
-            const calledDeclaration = tryGetCalledDeclaration(typeChecker, node);
+            const calledDeclaration = tryGetSignatureDeclaration(typeChecker, node);
             if (calledDeclaration) {
                 return [getDefinitionFromSignatureDeclaration(calledDeclaration)];
             }
