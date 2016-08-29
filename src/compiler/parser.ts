@@ -6343,7 +6343,7 @@ namespace ts {
                                 tag = parseReturnTag(atToken, tagName);
                                 break;
                             case "template":
-                                tag = handleTemplateTag(atToken, tagName);
+                                tag = parseTemplateTag(atToken, tagName);
                                 break;
                             case "type":
                                 tag = parseTypeTag(atToken, tagName);
@@ -6702,7 +6702,7 @@ namespace ts {
                     return false;
                 }
 
-                function handleTemplateTag(atToken: Node, tagName: Identifier): JSDocTemplateTag {
+                function parseTemplateTag(atToken: Node, tagName: Identifier): JSDocTemplateTag {
                     if (forEach(tags, t => t.kind === SyntaxKind.JSDocTemplateTag)) {
                         parseErrorAtPosition(tagName.pos, scanner.getTokenPos() - tagName.pos, Diagnostics._0_tag_already_specified, tagName.text);
                     }

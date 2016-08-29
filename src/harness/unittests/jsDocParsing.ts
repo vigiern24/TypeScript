@@ -183,32 +183,37 @@ namespace ts {
     "kind": "JSDocRecordType",
     "pos": 1,
     "end": 11,
-    "members": {
-        "0": {
-            "kind": "JSDocRecordMember",
-            "pos": 2,
-            "end": 5,
-            "name": {
-                "kind": "Identifier",
+    "literal": {
+        "kind": "TypeLiteral",
+        "pos": 1,
+        "end": 11,
+        "members": {
+            "0": {
+                "kind": "PropertySignature",
                 "pos": 2,
-                "end": 5,
-                "text": "foo"
-            }
-        },
-        "1": {
-            "kind": "JSDocRecordMember",
-            "pos": 6,
-            "end": 10,
-            "name": {
-                "kind": "Identifier",
+                "end": 6,
+                "name": {
+                    "kind": "Identifier",
+                    "pos": 2,
+                    "end": 5,
+                    "text": "foo"
+                }
+            },
+            "1": {
+                "kind": "PropertySignature",
                 "pos": 6,
                 "end": 10,
-                "text": "bar"
-            }
-        },
-        "length": 2,
-        "pos": 2,
-        "end": 10
+                "name": {
+                    "kind": "Identifier",
+                    "pos": 6,
+                    "end": 10,
+                    "text": "bar"
+                }
+            },
+            "length": 2,
+            "pos": 2,
+            "end": 10
+        }
     }
 }`);
                 });
@@ -265,37 +270,42 @@ namespace ts {
     "kind": "JSDocRecordType",
     "pos": 1,
     "end": 19,
-    "members": {
-        "0": {
-            "kind": "JSDocRecordMember",
-            "pos": 2,
-            "end": 5,
-            "name": {
-                "kind": "Identifier",
+    "literal": {
+        "kind": "TypeLiteral",
+        "pos": 1,
+        "end": 19,
+        "members": {
+            "0": {
+                "kind": "PropertySignature",
                 "pos": 2,
-                "end": 5,
-                "text": "foo"
-            }
-        },
-        "1": {
-            "kind": "JSDocRecordMember",
-            "pos": 6,
-            "end": 18,
-            "name": {
-                "kind": "Identifier",
-                "pos": 6,
-                "end": 10,
-                "text": "bar"
+                "end": 6,
+                "name": {
+                    "kind": "Identifier",
+                    "pos": 2,
+                    "end": 5,
+                    "text": "foo"
+                }
             },
-            "type": {
-                "kind": "NumberKeyword",
-                "pos": 11,
-                "end": 18
-            }
-        },
-        "length": 2,
-        "pos": 2,
-        "end": 18
+            "1": {
+                "kind": "PropertySignature",
+                "pos": 6,
+                "end": 18,
+                "name": {
+                    "kind": "Identifier",
+                    "pos": 6,
+                    "end": 10,
+                    "text": "bar"
+                },
+                "type": {
+                    "kind": "NumberKeyword",
+                    "pos": 11,
+                    "end": 18
+                }
+            },
+            "length": 2,
+            "pos": 2,
+            "end": 18
+        }
     }
 }`);
                 });
@@ -377,6 +387,107 @@ namespace ts {
             "length": 1,
             "pos": 2,
             "end": 10
+        }
+    }
+}`);
+                });
+
+                it("trailingCommaInRecordType", () => {
+                    parsesCorrectly("{{a,}}", `{
+    "kind": "JSDocRecordType",
+    "pos": 1,
+    "end": 5,
+    "literal": {
+        "kind": "TypeLiteral",
+        "pos": 1,
+        "end": 5,
+        "members": {
+            "0": {
+                "kind": "PropertySignature",
+                "pos": 2,
+                "end": 4,
+                "name": {
+                    "kind": "Identifier",
+                    "pos": 2,
+                    "end": 3,
+                    "text": "a"
+                }
+            },
+            "length": 1,
+            "pos": 2,
+            "end": 4
+        }
+    }
+}`);
+                });
+
+                it("callSignatureInRecordType", () => {
+                    parsesCorrectly("{{(): number}}", `{
+    "kind": "JSDocRecordType",
+    "pos": 1,
+    "end": 13,
+    "literal": {
+        "kind": "TypeLiteral",
+        "pos": 1,
+        "end": 13,
+        "members": {
+            "0": {
+                "kind": "CallSignature",
+                "pos": 2,
+                "end": 12,
+                "parameters": {
+                    "length": 0,
+                    "pos": 3,
+                    "end": 3
+                },
+                "type": {
+                    "kind": "NumberKeyword",
+                    "pos": 5,
+                    "end": 12
+                }
+            },
+            "length": 1,
+            "pos": 2,
+            "end": 12
+        }
+    }
+}`);
+                });
+
+                it("methodInRecordType", () => {
+                    parsesCorrectly("{{foo(): number}}", `{
+    "kind": "JSDocRecordType",
+    "pos": 1,
+    "end": 16,
+    "literal": {
+        "kind": "TypeLiteral",
+        "pos": 1,
+        "end": 16,
+        "members": {
+            "0": {
+                "kind": "MethodSignature",
+                "pos": 2,
+                "end": 15,
+                "name": {
+                    "kind": "Identifier",
+                    "pos": 2,
+                    "end": 5,
+                    "text": "foo"
+                },
+                "parameters": {
+                    "length": 0,
+                    "pos": 6,
+                    "end": 6
+                },
+                "type": {
+                    "kind": "NumberKeyword",
+                    "pos": 8,
+                    "end": 15
+                }
+            },
+            "length": 1,
+            "pos": 2,
+            "end": 15
         }
     }
 }`);
@@ -902,15 +1013,12 @@ namespace ts {
     }
 }`);
                 });
-            });
+
+           });
 
             describe("parsesIncorrectly", () => {
                 it("emptyType", () => {
                     parsesIncorrectly("{}");
-                });
-
-                it("trailingCommaInRecordType", () => {
-                    parsesIncorrectly("{{a,}}");
                 });
 
                 it("unionTypeWithTrailingBar", () => {
@@ -975,14 +1083,6 @@ namespace ts {
 
                 it("namedParameter", () => {
                     parsesIncorrectly("{function(a: number)}");
-                });
-
-                it("callSignatureInRecordType", () => {
-                    parsesIncorrectly("{{(): number}}");
-                });
-
-                it("methodInRecordType", () => {
-                    parsesIncorrectly("{{foo(): number}}");
                 });
 
                 it("tupleTypeWithComma", () => {
@@ -1056,10 +1156,6 @@ namespace ts {
 
                 it("threeAsterisks", () => {
                     parsesIncorrectly("/*** */");
-                });
-
-                it("asteriskAfterPreamble", () => {
-                    parsesIncorrectly("/** * @type {number} */");
                 });
 
                 it("multipleTypes", () => {
@@ -1143,12 +1239,21 @@ namespace ts {
                     "end": 21
                 }
             },
-            comment: ""
+            "comment": ""
         },
         "length": 1,
         "pos": 8,
         "end": 22
     }
+}`);
+                });
+
+                it("asteriskAfterPreamble", () => {
+                    parsesCorrectly("/** * @type {number} */", `{
+    "comment": "* @type {number} ",
+    "end": 23,
+    "kind": "JSDocComment",
+    "pos": 0
 }`);
                 });
 
@@ -1164,8 +1269,9 @@ namespace ts {
     "tags": {
         "0": {
             "kind": "JSDocTypeTag",
+            "comment": "",
             "pos": 8,
-            "end": 13,
+            "end": 14,
             "atToken": {
                 "kind": "AtToken",
                 "pos": 8,
@@ -1180,7 +1286,7 @@ namespace ts {
         },
         "length": 1,
         "pos": 8,
-        "end": 13
+        "end": 14
     }
 }`);
                 });
@@ -1197,8 +1303,9 @@ namespace ts {
     "tags": {
         "0": {
             "kind": "JSDocReturnTag",
+            "comment": "",
             "pos": 8,
-            "end": 15,
+            "end": 16,
             "atToken": {
                 "kind": "AtToken",
                 "pos": 8,
@@ -1213,7 +1320,7 @@ namespace ts {
         },
         "length": 1,
         "pos": 8,
-        "end": 15
+        "end": 16
     }
 }`);
                 });
@@ -2221,6 +2328,7 @@ namespace ts {
     "tags": {
         "0": {
             "kind": "JSDocParameterTag",
+            "comment": "",
             "pos": 8,
             "end": 18,
             "atToken": {
@@ -2233,6 +2341,12 @@ namespace ts {
                 "pos": 9,
                 "end": 14,
                 "text": "param"
+            },
+            "parameterName": {
+                "kind": "Identifier",
+                "pos": 15,
+                "end": 18,
+                "text": "foo"
             },
             "preParameterName": {
                 "kind": "Identifier",
@@ -2267,17 +2381,18 @@ namespace ts {
                                     "kind": "AtToken",
                                     "pos": 8
                                 },
-                                "end": 97,
+                                "comment": "",
+                                "end": 98,
                                 "jsDocTypeLiteral": {
-                                    "end": 97,
+                                    "end": 98,
                                     "jsDocPropertyTags": [
                                         {
                                             "atToken": {
                                                 "end": 48,
                                                 "kind": "AtToken",
-                                                "pos": 46
+                                                "pos": 47
                                             },
-                                            "end": 69,
+                                            "end": 72,
                                             "kind": "JSDocPropertyTag",
                                             "name": {
                                                 "end": 69,
@@ -2285,7 +2400,7 @@ namespace ts {
                                                 "pos": 66,
                                                 "text": "age"
                                             },
-                                            "pos": 46,
+                                            "pos": 47,
                                             "tagName": {
                                                 "end": 56,
                                                 "kind": "Identifier",
@@ -2307,9 +2422,9 @@ namespace ts {
                                             "atToken": {
                                                 "end": 75,
                                                 "kind": "AtToken",
-                                                "pos": 73
+                                                "pos": 74
                                             },
-                                            "end": 97,
+                                            "end": 98,
                                             "kind": "JSDocPropertyTag",
                                             "name": {
                                                 "end": 97,
@@ -2317,7 +2432,7 @@ namespace ts {
                                                 "pos": 93,
                                                 "text": "name"
                                             },
-                                            "pos": 73,
+                                            "pos": 74,
                                             "tagName": {
                                                 "end": 83,
                                                 "kind": "Identifier",
@@ -2340,11 +2455,11 @@ namespace ts {
                                         "atToken": {
                                             "end": 29,
                                             "kind": "AtToken",
-                                            "pos": 27
+                                            "pos": 28
                                         },
                                         "end": 42,
                                         "kind": "JSDocTypeTag",
-                                        "pos": 27,
+                                        "pos": 28,
                                         "tagName": {
                                             "end": 33,
                                             "kind": "Identifier",
@@ -2369,7 +2484,7 @@ namespace ts {
                                         }
                                     },
                                     "kind": "JSDocTypeLiteral",
-                                    "pos": 23
+                                    "pos": 26
                                 },
                                 "kind": "JSDocTypedefTag",
                                 "name": {
@@ -2386,7 +2501,7 @@ namespace ts {
                                     "text": "typedef"
                                 }
                             },
-                            "end": 97,
+                            "end": 98,
                             "length": 1,
                             "pos": 8
                         }

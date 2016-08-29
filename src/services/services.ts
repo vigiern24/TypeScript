@@ -7182,20 +7182,20 @@ namespace ts {
 
             function classifyJSDocComment(docComment: JSDocComment) {
                 let pos = docComment.pos;
+                if (docComment.tags) {
+                    for (const tag of docComment.tags) {
+                        // As we walk through each tag, classify the portion of text from the end of
+                        // the last tag (or the start of the entire doc comment) as 'comment'.
+                        if (tag.pos !== pos) {
+                            pushCommentRange(pos, tag.pos - pos);
+                        }
 
-                for (const tag of docComment.tags) {
-                    // As we walk through each tag, classify the portion of text from the end of
-                    // the last tag (or the start of the entire doc comment) as 'comment'.
-                    if (tag.pos !== pos) {
-                        pushCommentRange(pos, tag.pos - pos);
-                    }
+                        pushClassification(tag.atToken.pos, tag.atToken.end - tag.atToken.pos, ClassificationType.punctuation);
+                        pushClassification(tag.tagName.pos, tag.tagName.end - tag.tagName.pos, ClassificationType.docCommentTagName);
 
-                    pushClassification(tag.atToken.pos, tag.atToken.end - tag.atToken.pos, ClassificationType.punctuation);
-                    pushClassification(tag.tagName.pos, tag.tagName.end - tag.tagName.pos, ClassificationType.docCommentTagName);
+                        pos = tag.tagName.end;
 
-                    pos = tag.tagName.end;
-
-                    switch (tag.kind) {
+                        switch (tag.kind) {
                         case SyntaxKind.JSDocParameterTag:
                             processJSDocParameterTag(<JSDocParameterTag>tag);
                             break;
@@ -7208,9 +7208,10 @@ namespace ts {
                         case SyntaxKind.JSDocReturnTag:
                             processElement((<JSDocReturnTag>tag).typeExpression);
                             break;
-                    }
+                        }
 
-                    pos = tag.end;
+                        pos = tag.end;
+                    }
                 }
 
                 if (pos !== docComment.end) {
