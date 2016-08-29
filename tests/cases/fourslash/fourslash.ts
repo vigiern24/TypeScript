@@ -152,6 +152,9 @@ declare namespace FourSlashInterface {
         eval(expr: string, value: any): void;
         currentLineContentIs(text: string): void;
         currentFileContentIs(text: string): void;
+        goToDefinitionIs(endMarker: string): void;
+        goToDefinition(startMarker: string | string[], endMarker: string): void;
+        goToDefinitions(startMarker: string, endMarkers: string[]): void;
         verifyGetEmitOutputForCurrentFile(expected: string): void;
         verifyGetEmitOutputContentsForCurrentFile(expected: ts.OutputFile[]): void;
         /**

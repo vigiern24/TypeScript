@@ -525,6 +525,77 @@ namespace FourSlash {
             }
         }
 
+        public verifyGoToDefinitionIs(endMarker: string) {
+            this.verifyDefinitionsCount(/*negative*/ false, 1); //neater
+            this.goToDefinition(0); //TODO: custom index
+            this.verifyCaretAtMarker(endMarker);
+        }
+
+        public verifyGoToDefinition(startMarkers: string | string[], endMarker: string) {
+            if (ts.isArray(startMarkers)) {
+                for (const marker of startMarkers) {
+                    this.verifyGoToDefinition(marker, endMarker);
+                }
+            }
+            else {
+                //TODO: do like in verifyGoToDefinitions
+                this.goToMarker(startMarkers);
+                this.verifyDefinitionsCount(/*negative*/ false, 1); //neater
+                this.goToDefinition(0); //TODO: custom index
+                this.verifyCaretAtMarker(endMarker);
+            }
+        }
+
+        public verifyGoToDefinitions(startMarker: string, endMarkers: string[]) {
+            //neater
+            this.goToMarker(startMarker);
+            const definitions = this.languageService.getDefinitionAtPosition(this.activeFile.fileName, this.currentCaretPosition);
+
+            //duplicate code
+            if (!definitions || !definitions.length) {
+                this.raiseError("goToDefinitions failed - expected to find at least one definition location but got 0");
+            }
+            if (endMarkers.length !== definitions.length) {
+                this.raiseError(`goToDefinitions failed - expected to find ${endMarkers.length} definitions but got ${definitions.length}`);
+            }
+
+            for (let i = 0; i < endMarkers.length; i++) {
+                const marker = this.getMarkerByName(endMarkers[i]), definition = definitions[i];
+                if (marker.fileName !== definition.fileName || marker.position !== definition.textSpan.start) {
+                    //neater
+                    this.raiseError(`goToDefinition failed for definition ${i}: expected ${marker.fileName} at ${marker.position}, got ${definition.fileName} at ${definition.textSpan.start}`);
+                }
+            }
+        }
+
+        /*
+        // Entry points from fourslash.ts
+        public goToMarker(name = "") {
+            const marker = this.getMarkerByName(name);
+            if (this.activeFile.fileName !== marker.fileName) {
+                this.openFile(marker.fileName);
+            }
+
+            const content = this.getFileContent(marker.fileName);
+            if (marker.position === -1 || marker.position > content.length) {
+                throw new Error(`Marker "${name}" has been invalidated by unrecoverable edits to the file.`);
+            }
+            this.lastKnownMarker = name;
+            this.goToPosition(marker.position);
+        }
+        */
+
+        /*
+                    const definitions = this.languageService.getDefinitionAtPosition(this.activeFile.fileName, this.currentCaretPosition);
+            if (!definitions || !definitions.length) {
+                this.raiseError("goToDefinition failed - expected to at least one definition location but got 0");
+            }
+
+            if (definitionIndex >= definitions.length) {
+                this.raiseError(`goToDefinition failed - definitionIndex value (${definitionIndex}) exceeds definition list size (${definitions.length})`);
+            }
+            */
+
         public verifyGetEmitOutputForCurrentFile(expected: string): void {
             const emit = this.languageService.getEmitOutput(this.activeFile.fileName);
             if (emit.outputFiles.length !== 1) {
@@ -1561,6 +1632,7 @@ namespace FourSlash {
             this.goToPosition(len);
         }
 
+        //kill?
         public goToDefinition(definitionIndex: number) {
             const definitions = this.languageService.getDefinitionAtPosition(this.activeFile.fileName, this.currentCaretPosition);
             if (!definitions || !definitions.length) {
@@ -2943,6 +3015,18 @@ namespace FourSlashInterface {
 
         public currentFileContentIs(text: string) {
             this.state.verifyCurrentFileContent(text);
+        }
+
+        public goToDefinitionIs(endMarker: string) {
+            this.state.verifyGoToDefinitionIs(endMarker);
+        }
+
+        public goToDefinition(startMarkers: string | string[], endMarker: string) {
+            this.state.verifyGoToDefinition(startMarkers, endMarker);
+        }
+
+        public goToDefinitions(startMarker: string, endMarkers: string[]) {
+            this.state.verifyGoToDefinitions(startMarker, endMarkers);
         }
 
         public verifyGetEmitOutputForCurrentFile(expected: string): void {

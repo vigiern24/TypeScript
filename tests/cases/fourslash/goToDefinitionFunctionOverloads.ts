@@ -7,14 +7,4 @@
 /////*functionOverloadReference1*/functionOverload();
 /////*functionOverloadReference2*/functionOverload("123");
 
-goTo.marker('functionOverloadReference1');
-goTo.definition();
-verify.caretAtMarker('functionOverloadDefinition');
-
-goTo.marker('functionOverloadReference2');
-goTo.definition();
-verify.caretAtMarker('functionOverloadDefinition');
-
-goTo.marker('functionOverload');
-goTo.definition();
-verify.caretAtMarker('functionOverloadDefinition');
+verify.goToDefinition(["functionOverloadReference1", "functionOverloadReference2", "functionOverload"], "functionOverloadDefinition");

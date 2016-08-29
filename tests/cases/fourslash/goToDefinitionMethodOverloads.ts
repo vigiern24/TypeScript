@@ -18,27 +18,5 @@
 ////methodOverload./*instanceMethodReference1*/method();
 ////methodOverload./*instanceMethodReference2*/method("456");
 
-goTo.marker('staticMethodReference1');
-goTo.definition();
-verify.caretAtMarker('staticMethodDefinition');
-
-goTo.marker('staticMethodReference2');
-goTo.definition();
-verify.caretAtMarker('staticMethodDefinition');
-
-goTo.marker('instanceMethodReference1');
-goTo.definition();
-verify.caretAtMarker('instanceMethodDefinition');
-
-goTo.marker('instanceMethodReference2');
-goTo.definition();
-verify.caretAtMarker('instanceMethodDefinition');
-
-goTo.marker('staticMethodOverload1');
-goTo.definition();
-verify.caretAtMarker('staticMethodDefinition');
-
-goTo.marker('instanceMethodOverload1');
-goTo.definition();
-verify.caretAtMarker('instanceMethodDefinition');
-
+verify.goToDefinition(["staticMethodReference1", "staticMethodReference2", "staticMethodOverload1"], "staticMethodDefinition");
+verify.goToDefinition(["instanceMethodReference1", "instanceMethodReference2", "instanceMethodOverload1"], "instanceMethodDefinition");
